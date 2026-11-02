@@ -58,6 +58,8 @@ pyspark-data-pipeline/
 ├── tests/
 │   └── test_pipeline.py
 │
+├── PROMPT_HISTORY.md
+├── TECHNICAL_DECISIONS.md
 ├── README.md
 ├── requirements.txt
 └── .gitignore
@@ -151,6 +153,8 @@ I executed both pipelines three times and compared their average execution times
 
 These results were measured on my local Windows environment. Actual execution times may change depending on the system and Spark configuration.
 
+The benchmark compares the combined effect of the optimization changes. It does not measure the individual contribution of each optimization technique separately.
+
 ## 9. Execution Plan Comparison
 
 I used Spark's `explain("formatted")` method to inspect the execution plans.
@@ -169,13 +173,20 @@ This reduces the join-related shuffle work and helps improve execution time.
 - Java JDK 17
 - Visual Studio Code
 
-### Install Dependencies
+### Step 1: Clone the Repository
 
-```bash
-pip install -r requirements.txt
+```powershell
+git clone https://github.com/tamiriDhanalakshmi15/pyspark-data-pipeline.git
+cd pyspark-data-pipeline
 ```
 
-### Activate Virtual Environment
+### Step 2: Create a Virtual Environment
+
+```powershell
+python -m venv venv
+```
+
+### Step 3: Activate the Virtual Environment
 
 For Windows PowerShell:
 
@@ -183,45 +194,51 @@ For Windows PowerShell:
 .\venv\Scripts\Activate.ps1
 ```
 
-### Generate Datasets
+### Step 4: Install Dependencies
 
-```bash
+```powershell
+pip install -r requirements.txt
+```
+
+### Step 5: Generate Datasets
+
+```powershell
 python src/generate_data.py
 ```
 
-### Run Data Quality Checks
+### Step 6: Run Data Quality Checks
 
-```bash
+```powershell
 python src/data_quality.py
 ```
 
-### Run Baseline Pipeline
+### Step 7: Run Baseline Pipeline
 
-```bash
+```powershell
 python src/baseline.py
 ```
 
-### Run Optimized Pipeline
+### Step 8: Run Optimized Pipeline
 
-```bash
+```powershell
 python src/optimized.py
 ```
 
-### Compare Both Pipelines
+### Step 9: Compare Both Pipelines
 
-```bash
+```powershell
 python src/compare.py
 ```
 
-### Run Performance Benchmark
+### Step 10: Run Performance Benchmark
 
-```bash
+```powershell
 python src/benchmark.py
 ```
 
-### Run Automated Tests
+### Step 11: Run Automated Tests
 
-```bash
+```powershell
 python -m unittest discover -s tests -v
 ```
 
@@ -256,3 +273,8 @@ Through this project, I built a PySpark pipeline that processes transaction data
 I also created an optimized version and compared it with the baseline pipeline. In my local benchmark, the optimized version achieved a 4.95x speedup, while both versions produced matching results.
 
 This project helped me understand how data processing, data quality checks, and Spark optimization techniques work in practice.
+
+## 14. Additional Documentation
+
+- [AI Usage and Prompt History](PROMPT_HISTORY.md)
+- [Technical Decisions and Project Reasoning](TECHNICAL_DECISIONS.md)
