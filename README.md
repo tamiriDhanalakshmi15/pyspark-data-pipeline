@@ -1,33 +1,37 @@
-
 # PySpark Data Pipeline Optimization
 
-## Project Overview
+## 1. About the Project
 
-This project implements a scalable data processing pipeline using PySpark. It processes synthetic transaction data, identifies data-quality issues, joins transaction records with product information, and generates customer-level analytics.
+This project is about building and improving a data processing pipeline using PySpark.
 
-The project compares a baseline pipeline with an optimized pipeline using Spark optimization techniques.
+I created synthetic transaction and product datasets and used them to build two pipelines: a baseline version and an optimized version.
 
-## Objectives
+The pipeline checks data quality, removes invalid records, joins transaction data with product information, and calculates customer-level results.
 
-- Process a large synthetic transaction dataset.
-- Identify and handle invalid records.
-- Detect duplicate transaction IDs.
-- Perform transaction and product data joins.
-- Calculate customer-level transaction metrics.
-- Optimize Spark execution using partitioning and broadcast joins.
-- Compare baseline and optimized performance.
-- Verify that both pipelines produce identical results.
+I also compared the execution time of both pipelines to understand how Spark optimization techniques affect performance.
 
-## Technology Stack
+## 2. Project Objectives
+
+- Generate transaction and product datasets.
+- Find missing values and invalid records.
+- Identify duplicate transaction IDs.
+- Clean the data before processing.
+- Join transaction and product datasets.
+- Calculate total transaction amounts and other customer-level details.
+- Improve performance using Spark optimization techniques.
+- Compare both pipeline outputs and execution times.
+
+## 3. Technologies Used
 
 - Python
-- Apache Spark (PySpark 3.5.6)
+- PySpark 3.5.6
+- Apache Spark
 - Pandas
 - Java JDK 17
-- CSV datasets
+- CSV files
 - Visual Studio Code
 
-## Project Structure
+## 4. Project Structure
 
 ```text
 pyspark-data-pipeline/
@@ -52,18 +56,21 @@ pyspark-data-pipeline/
 │   └── benchmark.py
 │
 ├── tests/
+│   └── test_pipeline.py
 │
 ├── README.md
-└── requirements.txt
+├── requirements.txt
+└── .gitignore
 ```
 
-## Dataset Details
+## 5. Dataset Information
 
-The project generates two synthetic datasets.
+I generated two datasets for this project.
 
 ### Transactions Dataset
 
-- 100,000 transaction records.
+Contains 100,000 transaction records with details such as:
+
 - Transaction ID
 - Customer ID
 - Product ID
@@ -73,20 +80,23 @@ The project generates two synthetic datasets.
 
 ### Products Dataset
 
-- 500 product records.
+Contains 500 product records with:
+
 - Product ID
 - Product name
 - Category
 
-The dataset includes intentionally injected data-quality issues:
+To test data cleaning, I also introduced some invalid records into the transaction dataset:
 
-- Negative transaction amounts.
-- Zero quantities.
-- Missing customer IDs.
-- Missing product IDs.
-- Duplicate transaction IDs.
+- Negative transaction amounts
+- Zero quantities
+- Missing customer IDs
+- Missing product IDs
+- Duplicate transaction IDs
 
-## Data Quality Results
+## 6. Data Quality Results
+
+After running the data quality checks, the results were:
 
 | Metric | Result |
 |---|---:|
@@ -96,141 +106,153 @@ The dataset includes intentionally injected data-quality issues:
 | Duplicate ID groups | 1 |
 | Rows sharing duplicate IDs | 101 |
 
-Invalid records are separated from valid records for further inspection.
+The valid and invalid records are saved separately in the output folder.
 
-## Pipeline Architecture
+## 7. Pipeline Implementation
 
-### 1. Data Generation
+### Baseline Pipeline
 
-Generates synthetic transaction and product datasets.
+The baseline pipeline performs the following operations:
 
-### 2. Data Quality Validation
+1. Reads the transaction and product datasets.
+2. Checks and removes invalid records.
+3. Joins both datasets using a regular Spark join.
+4. Groups the records by customer ID.
+5. Calculates total amount, transaction count, and product category count.
+6. Saves the results.
 
-Checks missing values, negative amounts, zero quantities, and duplicate transaction IDs.
+### Optimized Pipeline
 
-### 3. Baseline Pipeline
+I applied a few Spark optimization techniques to improve the pipeline:
 
-- Reads transaction and product datasets.
-- Cleans invalid records.
-- Performs a regular Spark join.
-- Aggregates transaction data by customer.
-- Saves customer-level results.
+- **Broadcast Join:** Used the small product dataset as a broadcast table to avoid a regular shuffle-based join.
+- **Repartitioning:** Repartitioned the cleaned transaction data using customer ID.
+- **Shuffle Partitions:** Reduced the configured shuffle partitions from 200 to 8.
+- **Adaptive Query Execution:** Enabled AQE to allow Spark to optimize execution at runtime.
 
-### 4. Optimized Pipeline
+The optimized pipeline performs the same calculations as the baseline pipeline.
 
-Uses the following optimization techniques:
+## 8. Performance Comparison
 
-- Broadcast Join for the small product dataset.
-- Repartitioning using customer ID.
-- Reduced shuffle partitions from 200 to 8.
-- Adaptive Query Execution (AQE).
-- Customer-level aggregation.
-
-### 5. Output Validation
-
-Compares baseline and optimized results to ensure that both pipelines produce identical customer-level metrics.
-
-## Performance Benchmark
-
-Three runs were performed for each pipeline.
+I executed both pipelines three times and compared their average execution times.
 
 | Metric | Baseline | Optimized |
 |---|---:|---:|
-| Average execution time | 55.98 sec | 11.31 sec |
+| Average execution time | 55.98 seconds | 11.31 seconds |
 | Join strategy | SortMergeJoin | BroadcastHashJoin |
-| Shuffle partitions | 200 | 8 |
+| Configured shuffle partitions | 200 | 8 |
 
-### Performance Improvement
+### Results
 
-- Speedup: 4.95x
-- Execution time reduction: 79.8%
-- Customer records: 10,000
-- Mismatched customers: 0
+- Average speedup: **4.95x**
+- Execution time reduction: **79.8%**
+- Customer records generated: **10,000**
+- Mismatched customer records: **0**
 
-These are observed results from a local Windows environment. Performance may vary with hardware and execution conditions.
+These results were measured on my local Windows environment. Actual execution times may change depending on the system and Spark configuration.
 
-## Execution Plan Analysis
+## 9. Execution Plan Comparison
 
-The baseline pipeline uses:
+I used Spark's `explain("formatted")` method to inspect the execution plans.
 
-`SortMergeJoin`
+The baseline pipeline uses `SortMergeJoin`, which involves shuffle and sorting operations.
 
-The optimized pipeline uses:
+The optimized pipeline uses `BroadcastHashJoin` because the product dataset is small enough to broadcast.
 
-`BroadcastHashJoin`
+This reduces the join-related shuffle work and helps improve execution time.
 
-The optimized plan broadcasts the small product dataset, avoiding the regular shuffle-based join of the baseline plan.
+## 10. How to Run the Project
 
-## Installation and Setup
-
-Requirements:
+### Requirements
 
 - Python 3
 - Java JDK 17
-- VS Code
+- Visual Studio Code
 
-Install dependencies:
+### Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Activate the virtual environment on Windows PowerShell:
+### Activate Virtual Environment
+
+For Windows PowerShell:
 
 ```powershell
 .\venv\Scripts\Activate.ps1
 ```
 
-## How to Run
-
-Generate datasets:
+### Generate Datasets
 
 ```bash
 python src/generate_data.py
 ```
 
-Run data-quality checks:
+### Run Data Quality Checks
 
 ```bash
 python src/data_quality.py
 ```
 
-Run baseline pipeline:
+### Run Baseline Pipeline
 
 ```bash
 python src/baseline.py
 ```
 
-Run optimized pipeline:
+### Run Optimized Pipeline
 
 ```bash
 python src/optimized.py
 ```
 
-Compare pipeline outputs:
+### Compare Both Pipelines
 
 ```bash
 python src/compare.py
 ```
 
-Run three-run performance benchmark:
+### Run Performance Benchmark
 
 ```bash
 python src/benchmark.py
 ```
 
-## Conclusion
+### Run Automated Tests
 
-This project demonstrates how PySpark optimization techniques can improve data-processing performance while preserving output correctness.
+```bash
+python -m unittest discover -s tests -v
+```
 
-The optimized pipeline achieved an observed 4.95x speedup compared with the baseline pipeline in a three-run local benchmark.
+The automated tests check data quality counts, customer record counts, and whether both pipeline outputs match.
 
-The project demonstrates practical experience with distributed data processing concepts, data-quality validation, join optimization, partitioning, performance measurement, and result verification.
+## 11. What I Learned
 
-## Future Improvements
+While working on this project, I got practical experience with:
 
-- Test with larger datasets.
-- Add automated unit tests.
-- Add detailed data-quality error categories.
-- Evaluate performance on a distributed Spark cluster.
-- Explore additional Spark optimization techniques.
+- Reading and processing datasets using PySpark.
+- Identifying and handling data quality issues.
+- Joining datasets using Spark.
+- Understanding broadcast joins and repartitioning.
+- Reading Spark execution plans.
+- Measuring and comparing execution times.
+- Writing basic automated tests.
+
+## 12. Future Improvements
+
+Some improvements I would like to work on next:
+
+- Test the pipeline with larger datasets.
+- Add more detailed data quality reports.
+- Improve the automated test coverage.
+- Run the pipeline on a distributed Spark cluster.
+- Explore more Spark performance optimization techniques.
+
+## 13. Conclusion
+
+Through this project, I built a PySpark pipeline that processes transaction data, checks data quality, and generates customer-level results.
+
+I also created an optimized version and compared it with the baseline pipeline. In my local benchmark, the optimized version achieved a 4.95x speedup, while both versions produced matching results.
+
+This project helped me understand how data processing, data quality checks, and Spark optimization techniques work in practice.
